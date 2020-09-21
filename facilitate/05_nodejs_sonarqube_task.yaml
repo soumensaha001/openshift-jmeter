@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: nodejs-sonarqube-task
+spec:
+#  --new v1beta1 style --
+  resources:
+    inputs:
+      - {type: git, name: source}
+  params:
+    - default: 'sonarsource/sonar-scanner-cli:4.4'
+      name: sonarqube-image
+      type: string
+  steps:
+    - args:
+        - '-c'
+        - |
+          set -e
+          if [ -n "${SONARQUBE_URL}" ]; then
+              echo "workdir: $(pwd)" 
+              echo "list: $(ls)" 
+              /opt/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=${SONARQUBE_PROJECT} -Dsonar.sources=. -Dsonar.host.url=${SONARQUBE_URL} -Dsonar.login=${SONARQUBE_LOGIN}
+          else 
+              echo "Skipping Sonar Qube step because sonarqube url has not been configured"
+          fi
+      command:
+        - /bin/bash
+      env:
+        - name: SONARQUBE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: SONARQUBE_URL
+              name: sonarqube-config
+              optional: true
+        - name: SONARQUBE_PROJECT
+          valueFrom:
+            secretKeyRef:
+              key: SONARQUBE_PROJECT
+              name: sonarqube-access
+              optional: true
+        - name: SONARQUBE_LOGIN
+          valueFrom:
+            secretKeyRef:
+              key: SONARQUBE_LOGIN
+              name: sonarqube-access
+              optional: true
+      image: $(inputs.params.sonarqube-image)
+      name: sonarqube
+      resources: {}
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - mountPath: .m2/repository
+          name: m2-repository
+      workingDir: /workspace/source/StoreWebApp
+  volumes:
+    - emptyDir: {}
+      name: m2-repository

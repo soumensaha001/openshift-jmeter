@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.service.name }}-deployment
+  labels:
+    app: webapp
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: pod-webapp
+      labels:
+        app: webapp
+    spec:
+      containers:
+        - name: "{{  .Chart.Name  }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          volumeMounts:
+          - name: config-volume
+            mountPath: /app/config
+          ports:
+          - containerPort: {{ .Values.webapp.port }}
+            protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.webapp.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 60
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-{{ .Values.service.name }}-config
+          items:
+          - key: checks
+            path: checks
+          - key: default.json
+            path: default.json

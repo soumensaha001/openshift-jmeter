@@ -1,0 +1,13 @@
+- Install Nexus Community Operator (default all namespaces);
+- $ oc new-project tools 
+- Install Nexus via the Operator.
+- $ oc adm policy add-scc-to-user anyuid system:serviceaccount:tools:nexus3
+- $ oc expose svc nexus3
+- $ export NEXUS=$(oc get po | grep nexus | awk '{ print $1 }')
+- $ NPW=$(oc rsh -t $NEXUS cat /nexus-data/admin.password)
+- $ echo $NPW
+- Login to the console and complete the setup (change the admin password)
+- Nexus is internall accessible via nexus3.tools.svc.cluster.local:8081
+
+Mirror:
+http://nexus3.tools.svc.cluster.local:8081/repository/maven-central/

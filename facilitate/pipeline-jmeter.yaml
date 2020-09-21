@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  generation: 14
+  name: jmeter-pipeline
+spec:
+  params:
+    - default: 'https://github.com/kitty-catt/light-bc-web'
+      description: the git repo containing the jmeter testplans.
+      name: git-repo
+      type: string
+    - default: 'master'
+      description: the branch to use
+      name: git-revision
+      type: string
+    - default: 'facilitate/tools/jmeter/testplan/target.jmx'
+      description: the path to the jmeter test plan in the repo
+      name: test-plan
+      type: string
+    - default: '3'
+      description: the number of jmeter threads that will execute the testplan
+      name: jmeter-users
+      type: string
+    - default: '50'
+      description: the number of times that an individual thread will execute the testplan
+      name: jmeter-loop-count
+      type: string
+  tasks:
+    - name: jmeter
+      params:
+        - name: git-url
+          value: $(params.git-repo)
+        - name: git-revision
+          value: $(params.git-revision)
+        - name: test-plan
+          value: $(params.test-plan)
+        - name: jmeter-users
+          value: $(params.jmeter-users)
+        - name: jmeter-loop-count
+          value: $(params.jmeter-loop-count)         
+      taskRef:
+        kind: Task
+        name: ibm-jmeter-test

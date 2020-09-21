@@ -1,0 +1,29 @@
+apiVersion: app.ibm.com/v1alpha1
+kind: Deployable
+metadata:
+  annotations:
+    app.ibm.com/is-local-deployable: "false"
+  name: web-deploy
+spec:
+  template:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      name: webapp-lightblue-deployment
+    spec:
+      replicas: 1
+      template:
+        metadata:
+          name: pod-webapp
+          labels:
+            app: webapp
+        spec:
+          containers:
+            - name: webapp
+              image: __IMAGE__
+              imagePullPolicy: Always
+              livenessProbe:
+                tcpSocket:
+                  port: 8000
+                initialDelaySeconds: 20
+                periodSeconds: 60

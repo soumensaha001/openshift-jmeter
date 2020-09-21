@@ -1,0 +1,75 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-deploy-node
+spec:
+  resources:
+  - name: git-repo
+    type: git
+  - name: image
+    type: image
+  params:
+  - name: deployment-name
+    type: string
+    description: name of the deployment to be patched
+  - name: image-url-name
+    type: string
+    description: the image to be scanned by IBM VA
+  - name: scan-image-name
+    type: string
+    description: whether or not to scan
+  tasks:
+  - name: build-image
+    taskRef:
+      name: buildah-vfs-storage-driver
+      kind: Task
+    resources:
+      inputs:
+      - name: source
+        resource: git-repo
+      outputs:
+      - name: image
+        resource: image
+    params:
+    - name: TLSVERIFY
+      value: "false"
+  - name: scan-image
+    taskRef:
+      name: ibm-img-scan-ibm
+    params:
+    - name: image-url
+      value: $(params.image-url-name)
+    - name: scan-image
+      value: $(params.scan-image-name)
+    runAfter:
+    - build-image
+  - name: apply-manifests
+    taskRef:
+      name: apply-manifests
+    resources:
+      inputs:
+      - name: source
+        resource: git-repo
+    runAfter:
+    - scan-image
+  - name: update-deployment
+    taskRef:
+      name: update-deployment
+    resources:
+      inputs:
+      - name: image
+        resource: image
+    params:
+    - name: deployment
+      value: $(params.deployment-name)
+    runAfter:
+    - apply-manifests
+  - name: restart-deployment
+    taskRef:
+      name: restart-deployment
+    resources:
+    params:
+    - name: deployment
+      value: $(params.deployment-name)
+    runAfter:
+    - update-deployment

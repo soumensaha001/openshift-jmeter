@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+# This requires the simple pipeline tasks from the pipeline hotel to be installed first
+# and the simple pipeline, and the conditional resource
+metadata:
+  name: bluecompute-build-and-deploy-pipeline-web-template
+spec:
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      generateName: bluecompute-web-pr-
+      namespace: light-bc
+    spec:
+      pipelineRef:
+        name: bluecompute-build-and-deploy-pipeline-web
+      resources:
+        - name: git-source-web
+          resourceRef:
+            name: git-source-web
+        - name: docker-image-web
+          resourceRef:
+            name: docker-image-web
+      params:
+        - name: pathToYamlFile
+          value: "k8s_yamls"
+        - name: pathToDeployablesFile
+          value: "k8s_yamls_mcm"
+      serviceAccountName: pipeline-account
+      timeout: "1h0m0s"

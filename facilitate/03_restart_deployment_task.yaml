@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: restart-deployment
+spec:
+  resources:
+  params:
+    - name: deployment
+      description: The name of the deployment to restart
+      type: string
+  steps:
+    - name: restart
+      image: quay.io/openshift/origin-cli:latest
+      command: ["/bin/bash", "-c"]
+      args:
+        - |-
+          oc rollout restart deployment $(inputs.params.deployment) 

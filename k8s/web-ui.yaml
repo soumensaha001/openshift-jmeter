@@ -1,0 +1,85 @@
+#apiVersion: apps.openshift.io/v1
+#kind: DeploymentConfig
+#metadata:
+#  name: web-lightblue-deployment
+#  labels:
+#    app: web
+#spec:
+#  strategy:
+#    type: Rolling
+#    rollingParams:
+#      updatePeriodSeconds: 1
+#      intervalSeconds: 1
+#      timeoutSeconds: 600
+#      maxUnavailable: 25%
+#      maxSurge: 25%
+#    resources:
+#      requests:
+#        cpu: 300m  
+#  selector:
+#    app: web
+#  replicas: 1
+#  template:
+#    metadata:
+#      labels:
+#        app: web
+#    spec:
+#      containers:
+#        - name: web-lightblue-deployment
+#          image: index.docker.io/rocketronald/lightbluecompute-web
+#          ports:
+#            - containerPort: 8000
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-lightblue-deployment
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web-lightblue-deployment
+        image: index.docker.io/rocketronald/lightbluecompute-web
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "1024Mi"
+          limits:
+            cpu: "100m"
+            memory: "1024Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-lightblue-service
+  labels:
+    app: web
+spec:
+  selector:
+    app: web
+  ports:
+   - port: 8000
+     targetPort: 8000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: web
+  name: web-lightblue-service
+spec:
+  port:
+    targetPort: 8000
+  to:
+    kind: Service
+    name: web-lightblue-service
+    weight: 100

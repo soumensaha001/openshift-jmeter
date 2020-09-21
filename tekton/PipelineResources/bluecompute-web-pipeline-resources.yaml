@@ -1,0 +1,23 @@
+apiVersion: v1
+items:
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    name: docker-image-web
+  spec:
+    params:
+    - name: url
+      value: index.docker.io/ibmcase/lightbluecompute-web
+    type: image
+- apiVersion: tekton.dev/v1alpha1
+  kind: PipelineResource
+  metadata:
+    name: git-source-web
+  spec:
+    params:
+    - name: revision
+      value: master
+    - name: url
+      value: https://github.com/phemankita/light-bc-web
+    type: git
+kind: List
